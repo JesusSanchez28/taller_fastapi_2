@@ -42,14 +42,14 @@ def salud():
 @app.get('/productos', response_model=list[ProductoSalida])
 def listar():
     with conexion() as conn, conn.cursor() as cur:
-        cur.execute('SELECT id,nombre,precio,stock '
+        cur.execute('SELECT id,nombre,precio,stock,categoria '
                     'FROM productos ORDER BY id')
         return cur.fetchall()
 
 @app.get('/productos/{id}', response_model=ProductoSalida)
 def consultar(id: int = ApiPath(gt=0)):
     with conexion() as conn, conn.cursor() as cur:
-        cur.execute('SELECT id,nombre,precio,stock '
+        cur.execute('SELECT id,nombre,precio,stock,categoria'
                     'FROM productos WHERE id=%s', (id,))
         fila = cur.fetchone()
         if fila is None:
@@ -59,9 +59,9 @@ def consultar(id: int = ApiPath(gt=0)):
           status_code=201)
 def crear(datos: ProductoEntrada):
     with conexion() as conn, conn.cursor() as cur:
-        cur.execute('INSERT INTO productos(nombre,precio,stock) '
-                    'VALUES (%s,%s,%s)',
-                    (datos.nombre, datos.precio, datos.stock))
+        cur.execute('INSERT INTO productos(nombre,precio,stock,categoria) '
+                    'VALUES (%s,%s,%s,%s)',
+                    (datos.nombre, datos.precio, datos.stock, datos.categoria))
         return {'id': cur.lastrowid, **datos.model_dump()}
 
 @app.put('/productos/{id}', response_model=ProductoSalida)
@@ -73,8 +73,8 @@ def actualizar(datos: ProductoEntrada,
         if cur.fetchone() is None:
             raise HTTPException(404, 'Producto no encontrado')
         cur.execute('UPDATE productos SET nombre=%s,precio=%s,'
-                    'stock=%s WHERE id=%s',
-                    (datos.nombre, datos.precio, datos.stock, id))
+                    'stock=%s,categoria=%s WHERE id=%s',
+                    (datos.nombre, datos.precio, datos.stock, datos.categoria, id))
         return {'id': id, **datos.model_dump()}
 
 @app.delete('/productos/{id}', status_code=204)

@@ -5,41 +5,123 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>Inventario FACA</title>
-
+                                                        <!-- AQUI BRINDAMOS LOS ESTILOS DE LA PAGINA -->
 <style>
-body {font:16px system-ui;max-width:850px;margin:40px auto;
-      padding:0 20px;background:#f4f7fa;color:#172b40}
-input,button {padding:10px;margin:5px}
-table {width:100%;border-collapse:collapse;background:white}
-th,td {padding:10px;border:1px solid #b5c5d4;text-align:left}
+
+body {
+  font:16px system-ui;
+  max-width:970px;
+  margin:40px auto;
+  padding:0 20px;
+  background:#f4f7fa;
+  color:#172b40
+}
+
+input,button {
+  padding:10px;margin:5px
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+  background:white
+}
+th,td {
+  padding:10px;
+  border:1px solid #b5c5d4;
+  text-align:left
+  }
+
 </style>
 
 </head>
 
 <body>
 <h1>Inventario FACA</h1><a href="/docs">Abrir Swagger</a>
+<br>
+<br>
+<hr>
+
+                                                      <!-- DESDE AQUI EMPIEZA EL DE GUARDAR -->
+<h2>CREAR PRODUCTO AQUI:</h2>
 
 <form id="formulario">
 
 <label>
-  Nombre <input id="nombre" required minlength="2"
- maxlength="100">
+  Nombre <input id="nombre" required minlength="2" maxlength="100">
 </label>
-<label>Precio <input id="precio" type="number" required
- min="0.01" max="99999999.99" step="0.01">
+<label>
+  Precio <input id="precio" type="number" required min="0.01" max="99999999.99" step="0.01">
 </label>
-<label>Stock <input id="stock" type="number" required
- min="0" max="2147483647" step="1">
+<label>
+  Stock <input id="stock" type="number" required min="0" max="2147483647" step="1">
 </label>
+<label>
+  Categoria <input id="categoria" required minlength="2" maxlength="100">
+</label>
+
 <button>Guardar</button>
 
-</form>
+<br><br>
 
+</form>
+<hr>
+                                                      <!-- DESDE AQUI EMPIEZA EL DE ACTUALIZAR -->
+<H2>ACTUALIZAR PRODUCTO AQUI:</H2> 
+<label>
+  <strong>Ingrese el id del producto que desea actualizar: <input id="id_por_actualizar" type="number" min="1" max="100000"></strong> 
+</label>
+
+<hr>
+<br>
+<form id="formulario_actualizar">
+  <label>
+    Nombre <input id="nombre_actualizado" required minlength="2" maxlength="100"
+  </label>
+  <label>
+    Precio <input id="precio_actualizado" type="number" required min="0.01" max="99999999.99" step="0.01">
+  </label>
+  <label>
+    Stock <input id="stock_actualizado" type="number" required min="0" max="2147483647" step="1">
+  </label>
+  <label>
+  Categoria <input id="categoria_actualizada" required minlength="2" maxlength="100">
+  </label>
+
+  <button>Actualizar</button>
+  
+</form>
+<br><br>
+<hr>
+                                                      <!-- DESDE ACA SE INICIA EL DE ELIMINAR -->
+
+<h2>ELIMINAR PRODUCTO AQUI:</h2>
+<label>
+  <strong>Ingrese el id del producto que desea eliminar: <input id="id_por_actualizar" type="number" min="1" max="100000"></strong> 
+</label>
+<hr>
+
+
+                                                      <!-- DESDE ACA SE LISTA LOS PRODUCTOS -->
+
+<h2>LISTAR PRODUCTOS AQUI:</h2>
 <button id="recargar">Recargar lista</button>
 
 <p id="mensaje" role="status"></p>
-<table><thead><tr><th>ID</th><th>Nombre</th><th>Precio</th>
-<th>Stock</th></tr></thead><tbody id="filas"></tbody></table>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Precio</th>
+      <th>Stock</th> 
+      <th>Categoria</th>
+    </tr>
+  </thead>
+  <tbody id="filas"></tbody>
+</table>
+
+
+                                  <!-- DESDE AQUI DAREMOS PASO AL JSCRIPT COSA QUE AUN NO ENTIENDO DEL TODO PERO AJA -->
 <script>
 const $ = id => document.getElementById(id);
 async function pedir(url, opciones) {
@@ -53,7 +135,7 @@ async function cargar() {
   $('filas').replaceChildren();
   for (const p of productos) {
     const tr = document.createElement('tr');
-    for (const valor of [p.id,p.nombre,p.precio,p.stock]) {
+    for (const valor of [p.id,p.nombre,p.precio,p.stock,p.categoria]) {
       const td = document.createElement('td');
       td.textContent = valor;
       tr.appendChild(td);
@@ -68,7 +150,8 @@ $('formulario').addEventListener('submit', async e => {
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({nombre:$('nombre').value,
         precio:Number($('precio').value),
-        stock:Number($('stock').value)})
+        stock:Number($('stock').value),
+        categoria:$('categoria').value})
     });
     $('formulario').reset();
     await cargar();
