@@ -67,13 +67,14 @@ th,td {
 <hr>
                                                       <!-- DESDE AQUI EMPIEZA EL DE ACTUALIZAR -->
 <H2>ACTUALIZAR PRODUCTO AQUI:</H2> 
-<label>
-  <strong>Ingrese el id del producto que desea actualizar: <input id="id_por_actualizar" type="number" min="1" max="100000"></strong> 
-</label>
 
 <hr>
 <br>
 <form id="formulario_actualizar">
+  <label>
+  <strong>Ingrese el id del producto que desea actualizar: <input id="id_por_actualizar" type="number" min="1" max="100000"></strong> 
+  </label>
+<br>
   <label>
     Nombre <input id="nombre_actualizado" required minlength="2" maxlength="100"
   </label>
@@ -84,7 +85,7 @@ th,td {
     Stock <input id="stock_actualizado" type="number" required min="0" max="2147483647" step="1">
   </label>
   <label>
-  Categoria <input id="categoria_actualizada" required minlength="2" maxlength="100">
+    Categoria <input id="categoria_actualizada" required minlength="2" maxlength="100">
   </label>
 
   <button>Actualizar</button>
@@ -95,11 +96,32 @@ th,td {
                                                       <!-- DESDE ACA SE INICIA EL DE ELIMINAR -->
 
 <h2>ELIMINAR PRODUCTO AQUI:</h2>
-<label>
-  <strong>Ingrese el id del producto que desea eliminar: <input id="id_por_actualizar" type="number" min="1" max="100000"></strong> 
-</label>
-<hr>
 
+<hr><br>
+<form id="formulario_eliminar">
+
+  <label>
+  <strong>Ingrese el id del producto que desea eliminar: <input id="id_por_eliminar" type="number" min="1"></strong> 
+  </label>
+
+  <button>Eliminar</button>
+
+</form>
+<br><br>
+<hr>
+                                          <!-- AHORA POR ULTIMO A BUSCAR POR ID CREO Q SERA BREVE -->
+
+<h2>BUSCAR PRODUCTO POR ID</h2>
+<form id="formulario_buscar">
+    <label>
+        Ingrese el ID del producto: 
+        <input id="id_a_buscar" type="number" required min="1">
+    </label>
+    <button>Buscar</button>
+</form>
+
+<!-- Contenedor para mostrar los datos del producto encontrado -->
+<div id="resultado_busqueda" style="margin-top: 10px;"></div>
 
                                                       <!-- DESDE ACA SE LISTA LOS PRODUCTOS -->
 
@@ -123,13 +145,22 @@ th,td {
 
                                   <!-- DESDE AQUI DAREMOS PASO AL JSCRIPT COSA QUE AUN NO ENTIENDO DEL TODO PERO AJA -->
 <script>
+
+// selector abreviado de una funcion flecha para llamar id y al buscarlo aparecer toda su informacion correspóndiente
+
 const $ = id => document.getElementById(id);
+
+// pide la informacion para luego usarla tipo es para usar los get los post etc
+
 async function pedir(url, opciones) {
   const r = await fetch(url, opciones);
   const datos = await r.json();
   if (!r.ok) throw new Error(JSON.stringify(datos.detail));
   return datos;
 }
+
+// carga todos los productos lit es la de listar ya que trae todo y lo pone dentro de un cuadro
+
 async function cargar() {
   const productos = await pedir('/productos');
   $('filas').replaceChildren();
@@ -143,6 +174,34 @@ async function cargar() {
     $('filas').appendChild(tr);
   }
 }
+// ME VINE HASTA ARRIBA PARA ANALIZAR ESTO JASJKJASA en fin ahora toca hacer el de buscar por id
+$('formulario_buscar').addEventListener('submit', async e => {
+    e.preventDefault();
+    try {
+        // 1. Capturamos el ID que escribió el usuario
+        const id = $('id_a_buscar').value;
+
+        // 2. Hacemos la petición GET a la API con el ID en la URL
+        const producto = await pedir(`/productos/${id}`);
+
+        // 3. Mostramos los datos del producto en pantalla dinámicamente
+        $('resultado_busqueda').innerHTML = `
+            <p><strong>ID:</strong> ${producto.id}</p>
+            <p><strong>Nombre:</strong> ${producto.nombre}</p>
+            <p><strong>Precio:</strong> ${producto.precio}</p>
+            <p><strong>Stock:</strong> ${producto.stock}</p>
+            <p><strong>Categoría:</strong> ${producto.categoria}</p>
+        `;
+
+        $('mensaje').textContent = 'Producto encontrado con éxito';
+    } catch (e) { 
+        // Si no existe el ID, limpiamos el resultado y mostramos el error
+        $('resultado_busqueda').innerHTML = '';
+        $('mensaje').textContent = e.message; 
+    }
+});
+
+// esta es la de guardar producto por eso se llama submit esta practicamente guarda lo que escribamos en el formulario
 $('formulario').addEventListener('submit', async e => {
   e.preventDefault();
   try {
@@ -153,13 +212,65 @@ $('formulario').addEventListener('submit', async e => {
         stock:Number($('stock').value),
         categoria:$('categoria').value})
     });
-    $('formulario').reset();
+    $('#formulario').reset();
     await cargar();
     $('mensaje').textContent = 'Producto guardado';
   } catch (e) { $('mensaje').textContent = e.message; }
 });
+
+
+// creare mi actualizar producto
+$('formulario_actualizar').addEventListener('submit', async e =>{
+  e.preventDefault();
+  try{
+    const id = $('id_por_actualizar').value;
+    await pedir(`/productos/${id}`, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+
+        nombre:$('nombre_actualizado').value,
+        precio:Number($('precio_actualizado').value),
+        stock:Number($('stock_actualizado').value),
+        categoria:$('categoria_actualizada').value
+
+      })
+    });
+    $('formulario_actualizar').reset();
+    $('id_por_actualizar').value = "";
+    await cargar();
+    $('mensaje').textContent = 'Producto Actualizado';
+  } catch (e) { $('mensaje').textContent = e.message; }
+});
+
+
+// ya maso entendi el jscript en este lado ahora pasemos a hacer el de eliminar 
+
+$('formulario_eliminar').addEventListener('submit', async e =>{
+  e.preventDefault();
+  try{
+    const id = $('id_por_eliminar').value;
+    await pedir(`/productos/${id}`, {
+      method:'DELETE',
+    });
+    $('formulario_eliminar').reset();
+    $('id_por_eliminar').value = "";
+    await cargar();
+    $('mensaje').textContent = 'Producto Eliminado';
+  } catch (e) { $('mensaje').textContent = e.message; $('id_por_eliminar').value = "";}
+});
+
+
+// estas practicamente es como recargar la pagina la primera permite q todo se muestre desde q ingresamos y la segunda es para 
+// nosotros recargar esa tabla de forma manual
+
 $('recargar').onclick = () => cargar().catch(e => {
   $('mensaje').textContent = e.message;
 });
+
 cargar().catch(e => { $('mensaje').textContent = e.message; });
-</script></body></html>
+
+</script>
+
+</body>
+</html>

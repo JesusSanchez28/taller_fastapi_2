@@ -49,7 +49,7 @@ def listar():
 @app.get('/productos/{id}', response_model=ProductoSalida)
 def consultar(id: int = ApiPath(gt=0)):
     with conexion() as conn, conn.cursor() as cur:
-        cur.execute('SELECT id,nombre,precio,stock,categoria'
+        cur.execute('SELECT id,nombre,precio,stock,categoria '
                     'FROM productos WHERE id=%s', (id,))
         fila = cur.fetchone()
         if fila is None:
